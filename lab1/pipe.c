@@ -7,15 +7,13 @@
 
 int main(int argc, char *argv[])
 {
-	//pid_t *processes = malloc((argc - 1) * sizeof(pid_t));
-	
 	//no arguments other than pipe
 	if (argc <= 1) {
 		exit(EINVAL);
 	}
 
 	//only one argument, just run the argument
-	if (argc == 2) {
+	else if (argc == 2) {
 		pid_t pid = fork(); //fork returns 0 if it is running child process, 1 if it is parent and negative if it is error
 		//in child process
 		if (pid == 0) {
@@ -42,8 +40,123 @@ int main(int argc, char *argv[])
 	}
 
 	//more than one argument
+	else {
+		pid_t *processes = malloc((argc - 1) * sizeof(pid_t));
+		int read_end;
 
-	if (argc == 3) {
+		for (int i = 1; i < argc; i++) {
+			//first argument
+			if (i == 1) {
+				int fd[2];
+				if (pipe(fd) == -1) {
+					exit(errno);
+				}
+
+				pid_t pid = fork();
+				if (pid < 0) {
+					exit(errno);
+				}
+				else if (pid == 0) {
+					if (dup2(fd[1], 1) < 0) {
+						exit(errno);
+					}
+					if (close(fd[1]) < 0) {
+						exit(errno);
+					}
+					if(execlp(argv[i], argv[i], NULL) == -1) {
+						exit(errno);
+					}
+				}
+				else {
+					//add child's pid into the processes array
+					processes[0] = pid;
+					//track the read_end of pipe
+					read_end = fd[0];
+
+					if (close(fd[1]) < 0) {
+						exit(errno);
+					}
+					if (close(fd[0]) < 0) {
+						exit(errno);
+					}
+				}
+			}
+			//last argument
+			else if (i == argc - 1) {
+				pid_t pid = fork();
+				if (pid < 0) {
+					exit(errno);
+				}
+				else if (pid == 0) {
+					if (dup2(read_end, 0) < 0) {
+						exit(errno);
+					}
+					if (execlp(argv[i], argv[i], NULL) == -1) {
+						exit(errno);
+					}
+				}
+				else {
+					processes[i-1] = pid;
+				}
+
+			}
+			//middle argument
+			else {
+
+				int fd[2];
+				if (pipe(fd) < 0) {
+					exit(errno);
+				}
+
+				pid_t pid = fork();
+
+				if (pid < 0) {
+					exit(errno);
+				}
+				else if (pid == 0) {
+					if (dup2(read_end, 0) < 0) {
+						exit(errno);
+					}
+					if (dup2(fd[1], 1) < 0) {
+						exit(errno);
+					}
+					if (close(fd[1]) < 0) {
+						exit(errno);
+					}
+					if (close(fd[0]) < 0) {
+						exit(errno);
+					}
+					if (execlp(argv[i], argv[i], NULL) == -1) {
+						exit(errno);
+					}
+				}
+				else {
+					processes[i-1] = pid;
+					read_end = fd[0];
+					if(close(fd[0]) < 0) {
+						exit(errno);
+					}
+					if (close(fd[1]) < 0) {
+						exit(errno);
+					}
+				}
+
+			}
+		}
+
+		//wait for processes
+		for (int j = 0; j < argc - 1; j++) {
+			int status = 0;
+			waitpid(processes[j], &status, 0);
+			if (WIFEXITED(status)) {
+				if (WEXITSTATUS(status)) {
+					exit(WEXITSTATUS(status));
+				}
+			}
+		}
+	}
+	
+	/*if (argc == 3) {
 
 		int fd[2];
 
@@ -111,6 +224,6 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-	}
+	} */
 	return 0;
 }
