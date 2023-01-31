@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 			int status = 0;
 			wait(&status);
 
-			if (WIFEEXITED(status)) {
+			if (WIFEXITED(status)) {
 				if (WEXITSTATUS(status)) {
 					exit(WEXITSTATUS(status));
 				}
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 			//wait
 			int status;
 			wait(&status);
-			if (WIFEEXITED(status)) {
+			if (WIFEXITED(status)) {
 				if (WEXITSTATUS(status)) {
 					exit(WEXITSTATUS(status));
 				}
