@@ -138,9 +138,7 @@ int main(int argc, char *argv[])
 					if (close(fd[1]) < 0) {
 						exit(errno);
 					}
-					if (close(read_end) < 0) {
-						exit(errno);
-					}
+					
  				}
 			}
 		}
