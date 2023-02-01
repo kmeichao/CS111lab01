@@ -103,8 +103,8 @@ int main(int argc, char *argv[])
 			//middle argument
 			else {
 
-				int fd1[2];
-				if (pipe(fd1) < 0) {
+				read_end = fd[0];
+				if (pipe(fd) < 0) {
 					exit(errno);
 				}
 
@@ -117,16 +117,16 @@ int main(int argc, char *argv[])
 					if (dup2(read_end, 0) < 0) {
 						exit(errno);
 					}
-					if (dup2(fd1[1], 1) < 0) {
+					if (dup2(fd[1], 1) < 0) {
 						exit(errno);
 					}
-					if (close(fd1[1]) < 0) {
+					if (close(fd[1]) < 0) {
 						exit(errno);
 					}
 					if (close(read_end) < 0) {
 						exit(errno);
 					}
-					if (close(fd1[0]) < 0) {
+					if (close(fd[0]) < 0) {
 						exit(errno);
 					}
 					if (execlp(argv[i], argv[i], NULL) == -1) {
@@ -135,15 +135,13 @@ int main(int argc, char *argv[])
 				}
 				else {
 					processes[i-1] = pid;
-					read_end = fd1[0];
-					if(close(fd1[0]) < 0) {
+					if (close(fd[1]) < 0) {
 						exit(errno);
 					}
-					if (close(fd1[1]) < 0) {
+					if (close(read_end) < 0) {
 						exit(errno);
 					}
-				}
-
+ 				}
 			}
 		}
 
