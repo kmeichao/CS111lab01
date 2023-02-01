@@ -47,9 +47,6 @@ int main(int argc, char *argv[])
 		if (pipe(fd) == -1) {
 			exit(errno);
 		}
-
-		int read_end = fd[0];
-
 		pid_t pid = fork();
 		if (pid < 0) {
 			exit(errno);
@@ -77,6 +74,7 @@ int main(int argc, char *argv[])
 		}
 
 		for (int i = 2; i < argc; i++) {
+			int read_end = fd[0];
 			
 			//last argument
 			if (i == argc - 1) {
@@ -103,7 +101,6 @@ int main(int argc, char *argv[])
 			//middle argument
 			else {
 
-				read_end = fd[0];
 				if (pipe(fd) < 0) {
 					exit(errno);
 				}
