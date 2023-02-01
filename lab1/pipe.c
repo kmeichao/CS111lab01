@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
 
 	//more than one argument
 	else {
-		pid_t *processes = malloc((argc - 1) * sizeof(pid_t));
+		pid_t *processes = (pid_t *)malloc((argc - 1) * sizeof(pid_t));
+		
 		int fd[2];
 		if (pipe(fd) == -1) {
 			exit(errno);
@@ -49,41 +50,36 @@ int main(int argc, char *argv[])
 
 		int read_end = fd[0];
 
-		for (int i = 1; i < argc; i++) {
-			//first argument
-			if (i == 1) {
-
-				pid_t pid = fork();
-				if (pid < 0) {
-					exit(errno);
-				}
-				else if (pid == 0) {
-					if (dup2(fd[1], 1) < 0) {
-						exit(errno);
-					}
-					if (close(fd[1]) < 0) {
-						exit(errno);
-					}
-					if (close(fd[0]) < 0) {
-						exit(errno);
-					}
-					if(execlp(argv[i], argv[i], NULL) == -1) {
-						exit(errno);
-					}
-				}
-				else {
-					//add child's pid into the processes array
-					processes[0] = pid;
-					if (close(fd[1]) < 0) {
-						exit(errno);
-					}
-					if (close(fd[0]) < 0) {
-						exit(errno);
-					}
-				}
+		pid_t pid = fork();
+		if (pid < 0) {
+			exit(errno);
+		}
+		else if (pid == 0) {
+			if (dup2(fd[1], 1) < 0) {
+				exit(errno);
 			}
+			if (close(fd[1]) < 0) {
+				exit(errno);
+			}
+			if (close(fd[0]) < 0) {
+				exit(errno);
+			}
+			if (execlp(argv[1], argv[1], NULL) == -1) {
+				exit(errno);
+			}
+		}
+		else {
+			//add child's pid into the processes array
+			processes[0] = pid;
+			if (close(fd[1]) < 0) {
+				exit(errno);
+			}
+		}
+
+		for (int i = 2; i < argc; i++) {
+			
 			//last argument
-			else if (i == argc - 1) {
+			if (i == argc - 1) {
 				pid_t pid = fork();
 				if (pid < 0) {
 					exit(errno);
@@ -98,7 +94,9 @@ int main(int argc, char *argv[])
 				}
 				else {
 					processes[i-1] = pid;
-					close(read_end);
+					if (close(read_end) < 0) {
+						exit(errno);
+					}
 				}
 
 			}
@@ -125,6 +123,9 @@ int main(int argc, char *argv[])
 					if (close(fd1[1]) < 0) {
 						exit(errno);
 					}
+					if (close(read_end) < 0) {
+						exit(errno);
+					}
 					if (close(fd1[0]) < 0) {
 						exit(errno);
 					}
@@ -135,10 +136,10 @@ int main(int argc, char *argv[])
 				else {
 					processes[i-1] = pid;
 					read_end = fd1[0];
-					if(close(fd[0]) < 0) {
+					if(close(fd1[0]) < 0) {
 						exit(errno);
 					}
-					if (close(fd[1]) < 0) {
+					if (close(fd1[1]) < 0) {
 						exit(errno);
 					}
 				}
