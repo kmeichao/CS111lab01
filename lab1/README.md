@@ -11,8 +11,6 @@ To build the program, navigate to inside the lab1 directory and run 'make'.
 
 ## Running
 
-Show an example run of your program, using at least two additional arguments, and what to expect
-
 Run the program by using './pipe <arguments>'. To prevent error, you must provide atleast one other argument than pipe. If there is only one other argument, the argument will be executed the same as if it was by itself. No flags should be provided, and every argument is a valid command line argument. 
 
 Example 1: 
