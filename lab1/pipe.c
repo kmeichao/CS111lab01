@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
 		for (int i = 2; i < argc; i++) {
 			int read_end = fd[0];
-			
+
 			//last argument
 			if (i == argc - 1) {
 				pid_t pid = fork();
@@ -135,7 +135,9 @@ int main(int argc, char *argv[])
 					if (close(fd[1]) < 0) {
 						exit(errno);
 					}
-					
+					if (close(read_end) < 0) {
+						exit(errno);
+					}
  				}
 			}
 		}
