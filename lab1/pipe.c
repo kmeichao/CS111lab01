@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
 	//only one argument, just run the argument
 	else if (argc == 2) {
 		pid_t pid = fork(); //fork returns 0 if it is running child process, 1 if it is parent and negative if it is error
+
 		//in child process
 		if (pid == 0) {
 			if (execlp(argv[1], argv[1], NULL) == -1) {
@@ -86,9 +87,14 @@ int main(int argc, char *argv[])
 					if (dup2(read_end, 0) < 0) {
 						exit(errno);
 					}
+					if (close(read_end) < 0) {
+						exit(errno);
+					}
+					
 					if (execlp(argv[i], argv[i], NULL) == -1) {
 						exit(errno);
 					}
+
 				}
 				else {
 					processes[i-1] = pid;
